@@ -1,0 +1,25 @@
+# Default values for xds-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+name: xds-server
+tier: backend
+replicaCount: 1
+App:
+  name: xds-server
+  image: k8s_xds_server:latest
+  http_port: 12345
+  imagePullPolicy: Never
+Consul:
+  name: consul
+  image: consul
+  http_port: 8500
+
+service:
+  type: NodePort
+  xds:
+    port: 12345
+    nodePort: 32345
+  consul:
+    port: 8500
+    nodePort: 32500

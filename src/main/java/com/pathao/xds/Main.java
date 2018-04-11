@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +29,7 @@ public class Main {
     private static SimpleCache<String> cache = new SimpleCache<>(true, node -> GROUP);
 
     private static String consulHost;
-    private static String consulPort;
+    private static int consulPort;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         initConfig();
@@ -54,7 +55,7 @@ public class Main {
     }
 
     private static void initConfig() {
-        String fileName = System.getProperty("prop");
+        String fileName = Optional.ofNullable(System.getProperty("prop")).orElse("xDSServer.properties");
         System.out.println("Property file: " + fileName);
         InputStream input = null;
 
@@ -64,7 +65,7 @@ public class Main {
 
             prop.load(input);
             consulHost = prop.getProperty("host");
-            consulPort = prop.getProperty("port");
+            consulPort = Integer.valueOf(prop.getProperty("port"));
             System.out.println("Consul address " + consulHost + ":" + consulPort);
         } catch (FileNotFoundException e) {
             System.out.println("Error reading properties file");
@@ -109,7 +110,7 @@ public class Main {
 
     private static Consul getConsulClient() {
         return Consul.builder()
-                .withHostAndPort(HostAndPort.fromParts("localhost", 8500))
+                .withHostAndPort(HostAndPort.fromParts(consulHost, consulPort))
                 .build();
     }
 

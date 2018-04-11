@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ .Values.name }}
+spec:
+  selector:
+    app: {{ .Values.name }}
+  ports:
+  - port: {{ .Values.service.xds.port }}
+    name: xds
+    nodePort: {{ .Values.service.xds.nodePort }}
+  - port: {{ .Values.service.consul.port }}
+    name: consul
+    nodePort: {{ .Values.service.consul.nodePort }}
+  type: {{ .Values.service.type }}
