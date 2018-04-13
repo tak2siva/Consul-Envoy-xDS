@@ -20,7 +20,7 @@ public class ListenerParseTest {
     public void deserialize() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(getTestStr());
-        List<Lds.Listener> listeners = ListenerParser.buildListener(jsonNode);
+        List<Lds.Listener> listeners = ListenerParser.buildListeners(jsonNode);
         assertTrue(listeners.size() == 1);
         assertTrue(listeners.get(0).equals(expectedListener()));
     }
@@ -96,7 +96,8 @@ public class ListenerParseTest {
                 "                              \"prefix\": \"/\"\n" +
                 "                            },\n" +
                 "                            \"route\": {\n" +
-                "                              \"cluster\": \"local_service\"\n" +
+                "                              \"cluster\": \"local_service\",\n" +
+                "                              \"prefix_rewrite\": \"/\"\n" +
                 "                            }\n" +
                 "                          }\n" +
                 "                        ]\n" +

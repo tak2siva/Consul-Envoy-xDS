@@ -14,19 +14,23 @@ import envoy.config.filter.network.http_connection_manager.v2.HttpConnectionMana
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ListenerParser {
-    public static List<Lds.Listener> buildListener(JsonNode jsonNode) {
+    public static List<Lds.Listener> buildListeners(JsonNode jsonNode) {
         List<Lds.Listener> listeners = new ArrayList<>();
         jsonNode.forEach(jListener -> {
-            listeners.add(Lds.Listener.newBuilder()
-                    .setName(jListener.get("name").asText())
-                    .setAddress(buildAddress(jListener.get("address")))
-                    .addAllFilterChains(buildFilerChains(jListener.get("filter_chains")))
-                    .build()
-            );
+            listeners.add(buildListener(jListener));
         });
         return listeners;
+    }
+
+    public static Lds.Listener buildListener(JsonNode jListener) {
+        return Lds.Listener.newBuilder()
+                .setName(jListener.get("name").asText())
+                .setAddress(buildAddress(jListener.get("address")))
+                .addAllFilterChains(buildFilerChains(jListener.get("filter_chains")))
+                .build();
     }
 
     private static AddressOuterClass.Address buildAddress(JsonNode jListener) {
@@ -135,7 +139,12 @@ public class ListenerParser {
     }
 
     private static RouteOuterClass.RouteAction buildRoute(JsonNode jRoute) {
-        return RouteOuterClass.RouteAction.newBuilder().setCluster(jRoute.get("cluster").asText()).build();
+        Optional<String> prefix_rewrite = Optional.ofNullable(jRoute.get("prefix_rewrite")).map(JsonNode::asText);
+        RouteOuterClass.RouteAction.Builder route = RouteOuterClass.RouteAction.newBuilder()
+                .setCluster(jRoute.get("cluster").asText());
+
+        prefix_rewrite.ifPresent(route::setPrefixRewrite);
+        return route.build();
     }
 
     private static RouteOuterClass.RouteMatch buildMatch(JsonNode jMatch) {

@@ -3,6 +3,8 @@ package com.pathao.xds;
 import com.google.common.net.HostAndPort;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
+import com.pathao.xds.dao.ClusterDao;
+import com.pathao.xds.dao.ListenerDao;
 import io.envoyproxy.controlplane.cache.SimpleCache;
 import io.envoyproxy.controlplane.cache.Snapshot;
 import io.envoyproxy.controlplane.server.DiscoveryServer;
@@ -22,6 +24,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
 
 public class Main {
     public static String GROUP = "Global";
@@ -46,10 +49,19 @@ public class Main {
 
         server.start();
 
-        System.out.println("Server has started on port " + server.getPort());
+        System.out.println("---Server has started on port " + server.getPort());
         Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
 
-        scheduler.scheduleAtFixedRate(fetchAndUpdateConfig(), 0, 10, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                System.out.println("Checking config");
+                fetchAndUpdateConfig().run();
+            } catch (Exception e) {
+                System.out.println("Error on Desrialization");
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
+        }, 10, 10, TimeUnit.SECONDS);
 
         server.awaitTermination();
     }
@@ -90,6 +102,7 @@ public class Main {
 
             String version = getVersion(keyValueClient);
             ClusterDao clusterDao = new ClusterDao(keyValueClient);
+            ListenerDao listenerDao = new ListenerDao(keyValueClient);
 
             System.out.println("Updating with version " + version);
 
@@ -98,7 +111,7 @@ public class Main {
                     Snapshot.create(
                             Collections.unmodifiableList(clusterDao.getClusters()),
                             Collections.unmodifiableList(emptyList()),
-                            Collections.unmodifiableList(emptyList()),
+                            Collections.unmodifiableList(listenerDao.getListeners()),
                             Collections.unmodifiableList(emptyList()),
                             version
                     )

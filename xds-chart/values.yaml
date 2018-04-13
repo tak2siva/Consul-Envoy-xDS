@@ -7,7 +7,7 @@ tier: backend
 replicaCount: 1
 App:
   name: xds-server
-  image: k8s_xds_server:latest
+  image: k8s_xds_server:v1.2
   http_port: 12345
   imagePullPolicy: Never
 Consul:

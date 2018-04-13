@@ -1,0 +1,52 @@
+{
+  "name": "app1_grpc_listener",
+  "address": {
+    "socket_address": {
+      "address": "0.0.0.0",
+      "port_value": 50052
+    }
+  },
+  "filter_chains": [
+    {
+      "filters": [
+        {
+          "name": "envoy.http_connection_manager",
+          "config": {
+            "stat_prefix": "ingress_http",
+            "generate_request_id": false,
+            "codec_type": "AUTO",
+            "tracing": {
+              "operation_name": "egress"
+            },
+            "route_config": {
+              "name": "local_grpc",
+              "virtual_hosts": [
+                {
+                  "name": "app1_grpc",
+                  "domains": [
+                    "*"
+                  ],
+                  "routes": [
+                    {
+                      "match": {
+                        "prefix": "/"
+                      },
+                      "route": {
+                        "cluster": "local_app1_grpc"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "http_filters": [
+              {
+                "name": "envoy.router"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
